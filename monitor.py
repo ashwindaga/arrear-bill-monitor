@@ -1,0 +1,172 @@
+import json, os, re, smtplib, sys
+from email.message import EmailMessage
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+
+LOGIN_URL = "http://117.232.134.137:8080/apex/f?p=123:101"
+REPORT_PAGE_ID = "738"   # Arrear Bill Approval Status
+
+TABLE_SEL = "table.t20Report"
+NEXT_SEL = "a.t20pagination:has-text('Next')"
+SNAP_DIR = Path("snapshots")
+
+
+def norm(s):
+    return re.sub(r"\s+", " ", (s or "").replace("\xa0", " ")).strip()
+
+
+def login(page, user, pw):
+    page.goto(LOGIN_URL, timeout=60000)
+    page.fill("#P101_USERNAME", user)
+    page.fill("#P101_PASSWORD", pw)
+    page.click("a.t20Button:has-text('Log In')")
+    page.wait_for_load_state("networkidle")
+    if page.query_selector("#P101_PASSWORD"):
+        raise RuntimeError("login failed (still on login page)")
+
+
+def open_report(page):
+    m = re.search(r"f\?p=(\d+):[^:]*:(\d+)", page.url)
+    if m:
+        app, sess = m.group(1), m.group(2)
+    else:
+        sess = page.evaluate("() => (document.querySelector('#pInstance')||{}).value")
+        app = "123"
+        if not sess:
+            raise RuntimeError(f"could not find session id; url was {page.url}")
+    base = page.url.split("/f?p=")[0].split("/apex/")[0] + "/apex"
+    page.goto(f"{base}/f?p={app}:{REPORT_PAGE_ID}:{sess}", timeout=60000)
+    page.wait_for_load_state("networkidle")
+    page.wait_for_selector(TABLE_SEL, timeout=30000)
+
+
+def read_page(page):
+    """Return list of dicts keyed by header id (BILL, DOC_NUM, ...)."""
+    return page.evaluate("""(sel) => {
+        const t = document.querySelector(sel);
+        const ids = [...t.querySelectorAll('th')].map(th => th.id);
+        return [...t.querySelectorAll('tr')].filter(tr => tr.querySelector('td')).map(tr => {
+            const o = {};
+            [...tr.querySelectorAll('td')].forEach((td, i) => o[ids[i]] = td.innerText);
+            return o;
+        });
+    }""", TABLE_SEL)
+
+
+def expected_total(page):
+    sel = page.query_selector("select[id^='X01_'] option[selected]")
+    if not sel:
+        return None
+    m = re.search(r"of\s+(\d+)", sel.inner_text())
+    return int(m.group(1)) if m else None
+
+
+def scrape(browser, user, pw):
+    ctx = browser.new_context()
+    page = ctx.new_page()
+    try:
+        login(page, user, pw)
+        open_report(page)
+        total = expected_total(page)
+        rows, pages = [], 0
+        while True:
+            rows.extend(read_page(page))
+            pages += 1
+            nxt = page.query_selector(NEXT_SEL)
+            if not nxt or pages >= 500:
+                break
+            first_before = page.inner_text(f"{TABLE_SEL} tr:nth-of-type(2) td")
+            nxt.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+            if page.inner_text(f"{TABLE_SEL} tr:nth-of-type(2) td") == first_before:
+                break
+        data = {}
+        for r in rows:
+            r = {k: norm(v) for k, v in r.items()}
+            data[r["BILL"]] = r
+        if total is not None and len(data) != total:
+            raise RuntimeError(f"row count mismatch: read {len(data)}, portal says {total}")
+        return data
+    finally:
+        ctx.close()
+
+
+def diff(old, new):
+    added = [new[k] for k in new if k not in old]
+    removed = [old[k] for k in old if k not in new]
+    changed = []
+    for k in new:
+        if k in old and old[k] != new[k]:
+            fields = [(f, old[k].get(f, ""), new[k].get(f, ""))
+                      for f in new[k] if old[k].get(f, "") != new[k].get(f, "")]
+            changed.append((k, fields))
+    return added, removed, changed
+
+
+def fmt_row(r):
+    return " | ".join(f"{k}={v}" for k, v in r.items() if v)
+
+
+def build_report(name, old, new):
+    added, removed, changed = diff(old, new)
+    out = [f"=== {name}: {len(added)} new, {len(changed)} changed, {len(removed)} removed ==="]
+    for r in added:
+        out.append(f"NEW  {r['BILL']}\n     {fmt_row(r)}")
+    for k, fields in changed:
+        out.append(f"CHANGED  {k}")
+        for f, o, n in fields:
+            out.append(f"     {f}: '{o or '(blank)'}' -> '{n or '(blank)'}'")
+    for r in removed:
+        out.append(f"REMOVED  {r['BILL']}\n     {fmt_row(r)}")
+    return "\n".join(out)
+
+
+def send_mail(subject, body):
+    msg = EmailMessage()
+    msg["From"] = os.environ["SMTP_USER"]
+    msg["To"] = os.environ["MAIL_TO"]
+    msg["Subject"] = subject
+    msg.set_content(body)
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+        s.login(os.environ["SMTP_USER"], os.environ["SMTP_PASS"])
+        s.send_message(msg)
+
+
+def main():
+    accounts = json.loads(os.environ["ACCOUNTS_JSON"])
+    SNAP_DIR.mkdir(exist_ok=True)
+    reports, failures = [], []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        for acc in accounts:
+            name = acc["name"]
+            snap = SNAP_DIR / f"{name}.json"
+            try:
+                new = scrape(browser, acc["user"], acc["pass"])
+                if not new:
+                    raise RuntimeError("empty table returned")
+            except Exception as e:
+                failures.append(f"{name}: {e}")
+                continue
+            if not snap.exists():
+                snap.write_text(json.dumps(new, indent=1, sort_keys=True))
+                reports.append(f"=== {name}: baseline saved ({len(new)} bills) ===")
+                continue
+            old = json.loads(snap.read_text())
+            if old != new:
+                reports.append(build_report(name, old, new))
+                snap.write_text(json.dumps(new, indent=1, sort_keys=True))
+        browser.close()
+
+    if reports:
+        has_change = any("new," in r for r in reports)
+        send_mail("Portal monitor: changes detected" if has_change
+                  else "Portal monitor: baseline saved", "\n\n".join(reports))
+    if failures:
+        print("FAILURES:\n" + "\n".join(failures), file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
