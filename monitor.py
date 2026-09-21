@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 LOGIN_URL = "http://117.232.134.137:8080/apex/f?p=123:101"
 REPORT_PAGE_ID = "738"   # Arrear Bill Approval Status
 
-TABLE_SEL = "table.t20Report"
+TABLE_SEL = "table.t20Report.t20Standard"
 NEXT_SEL = "a.t20pagination:has-text('Next')"
 SNAP_DIR = Path("snapshots")
 
@@ -63,21 +63,31 @@ def open_report(page):
 def read_page(page):
     """Return list of dicts keyed by header id (BILL, DOC_NUM, ...)."""
     return page.evaluate("""(sel) => {
-        const t = document.querySelector(sel);
-        const ids = [...t.querySelectorAll('th')].map(th => th.id);
-        return [...t.querySelectorAll('tr')].filter(tr => tr.querySelector('td')).map(tr => {
+        const tables = [...document.querySelectorAll(sel)];
+        // choose the table that actually has the BILL header cell
+        const t = tables.find(x => x.querySelector('th#BILL')) || tables[0];
+        const ids = [...t.querySelectorAll('tr > th')].map(th => th.id);
+        const rows = [...t.querySelectorAll('tr')].filter(tr =>
+            tr.closest('table') === t && tr.querySelector(':scope > td'));
+        return rows.map(tr => {
             const o = {};
-            [...tr.querySelectorAll('td')].forEach((td, i) => o[ids[i]] = td.innerText);
+            [...tr.querySelectorAll(':scope > td')].forEach((td, i) => {
+                if (ids[i]) o[ids[i]] = td.innerText;
+            });
             return o;
         });
     }""", TABLE_SEL)
 
 
 def expected_total(page):
+    # dropdown form: "row(s) 1 - 15 of 16"
     sel = page.query_selector("select[id^='X01_'] option[selected]")
-    if not sel:
-        return None
-    m = re.search(r"of\s+(\d+)", sel.inner_text())
+    if sel:
+        m = re.search(r"of\s+(\d+)", sel.inner_text())
+        if m:
+            return int(m.group(1))
+    # single page form: pager text "1 - 11"
+    m = re.search(r"(?<!\d)1\s*-\s*(\d+)(?!\d)", page.inner_text("body"))
     return int(m.group(1)) if m else None
 
 
@@ -104,7 +114,10 @@ def scrape(browser, user, pw):
         data = {}
         for r in rows:
             r = {k: norm(v) for k, v in r.items()}
-            data[r["BILL"]] = r
+            bill = r.get("BILL", "")
+            if not bill or " " in bill:      # real bills have no spaces, e.g. KANK-KMS:201718-UPFCS
+                continue
+            data[bill] = r
         if total is not None and len(data) != total:
             raise RuntimeError(f"row count mismatch: read {len(data)}, portal says {total}")
         return data
