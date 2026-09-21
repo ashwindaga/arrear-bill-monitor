@@ -2,6 +2,7 @@ import json, os, re, smtplib, sys
 from email.message import EmailMessage
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from urllib.parse import urlsplit
 
 LOGIN_URL = "http://117.232.134.137:8080/apex/f?p=123:101"
 REPORT_PAGE_ID = "738"   # Arrear Bill Approval Status
@@ -41,8 +42,12 @@ def open_report(page):
         app = "123"
         if not sess:
             raise RuntimeError(f"could not find session id; url was {page.url}")
-    base = page.url.split("/f?p=")[0].split("/apex/")[0] + "/apex"
-    target = f"{base}/f?p={app}:{REPORT_PAGE_ID}:{sess}"
+
+    parts = urlsplit(page.url)
+    # keep everything up to and including the "/f" path segment, e.g. /apex/f
+    path = parts.path if parts.path.endswith("/f") else "/apex/f"
+    target = f"{parts.scheme}://{parts.netloc}{path}?p={app}:{REPORT_PAGE_ID}:{sess}"
+
     page.goto(target, timeout=60000)
     page.wait_for_load_state("networkidle")
     try:
@@ -52,10 +57,7 @@ def open_report(page):
         page.screenshot(path="debug/report_failed.png", full_page=True)
         Path("debug/report_failed.html").write_text(page.content())
         text = norm(page.inner_text("body"))[:600]
-        raise RuntimeError(
-            f"report table not found. Landed on: {page.url.split(':')[0]}:{page.url.split(':')[1] if ':' in page.url else ''} "
-            f"| Page says: {text}"
-        )
+        raise RuntimeError(f"report table not found. Landed on: {page.url} | Page says: {text}")
 
 
 def read_page(page):
