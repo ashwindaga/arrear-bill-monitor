@@ -42,9 +42,20 @@ def open_report(page):
         if not sess:
             raise RuntimeError(f"could not find session id; url was {page.url}")
     base = page.url.split("/f?p=")[0].split("/apex/")[0] + "/apex"
-    page.goto(f"{base}/f?p={app}:{REPORT_PAGE_ID}:{sess}", timeout=60000)
+    target = f"{base}/f?p={app}:{REPORT_PAGE_ID}:{sess}"
+    page.goto(target, timeout=60000)
     page.wait_for_load_state("networkidle")
-    page.wait_for_selector(TABLE_SEL, timeout=30000)
+    try:
+        page.wait_for_selector(TABLE_SEL, timeout=30000)
+    except Exception:
+        Path("debug").mkdir(exist_ok=True)
+        page.screenshot(path="debug/report_failed.png", full_page=True)
+        Path("debug/report_failed.html").write_text(page.content())
+        text = norm(page.inner_text("body"))[:600]
+        raise RuntimeError(
+            f"report table not found. Landed on: {page.url.split(':')[0]}:{page.url.split(':')[1] if ':' in page.url else ''} "
+            f"| Page says: {text}"
+        )
 
 
 def read_page(page):
