@@ -16,10 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install playwright && playwright install --with-deps chromium
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
       - name: Run monitor
         env:
           ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
@@ -27,13 +33,15 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
         run: python monitor.py
-              - name: Upload debug files
+
+      - name: Upload debug files
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: debug
           path: debug/
           if-no-files-found: ignore
+
       - name: Save snapshots
         if: always()
         run: |
