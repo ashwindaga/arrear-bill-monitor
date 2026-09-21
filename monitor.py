@@ -17,12 +17,19 @@ def norm(s):
 
 def login(page, user, pw):
     page.goto(LOGIN_URL, timeout=60000)
+    page.wait_for_selector("#P101_USERNAME", timeout=30000)
     page.fill("#P101_USERNAME", user)
     page.fill("#P101_PASSWORD", pw)
-    page.click("a.t20Button:has-text('Log In')")
+    # Enter in the password field triggers APEX's own submit handler
+    with page.expect_navigation(timeout=60000, wait_until="load"):
+        page.press("#P101_PASSWORD", "Enter")
     page.wait_for_load_state("networkidle")
     if page.query_selector("#P101_PASSWORD"):
-        raise RuntimeError("login failed (still on login page)")
+        # capture evidence of what the portal said
+        Path("debug").mkdir(exist_ok=True)
+        page.screenshot(path="debug/login_failed.png", full_page=True)
+        text = norm(page.inner_text("body"))[:500]
+        raise RuntimeError(f"login failed (still on login page). Page says: {text}")
 
 
 def open_report(page):
