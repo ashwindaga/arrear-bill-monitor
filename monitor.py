@@ -105,6 +105,20 @@ def read_page(page):
     )
 
 
+def first_bill_on_page(page):
+    """Fingerprint of the current page: the first bill shown in the data table."""
+    return page.evaluate(
+        """(sel) => {
+            const t = [...document.querySelectorAll(sel)]
+                .find(x => x.querySelector('th#BILL'));
+            if (!t) return '';
+            const td = t.querySelector('tr > td');
+            return td ? td.innerText.trim() : '';
+        }""",
+        TABLE_SEL,
+    )
+
+
 def expected_total(page):
     # dropdown form: "row(s) 1 - 15 of 16"
     sel = page.query_selector("select[id^='X01_'] option[selected]")
@@ -133,12 +147,29 @@ def scrape(browser, user, pw):
             nxt = page.query_selector(NEXT_SEL)
             if not nxt or pages >= 500:
                 break
-            first_before = page.inner_text(f"{TABLE_SEL} tr:nth-of-type(2) td")
+
+            # APEX refreshes the report region via AJAX, so wait until the
+            # first bill on screen actually changes instead of sleeping.
+            before = first_bill_on_page(page)
             nxt.click()
+            try:
+                page.wait_for_function(
+                    """([sel, before]) => {
+                        const t = [...document.querySelectorAll(sel)]
+                            .find(x => x.querySelector('th#BILL'));
+                        if (!t) return false;
+                        const td = t.querySelector('tr > td');
+                        return !!td && td.innerText.trim() !== before;
+                    }""",
+                    arg=[TABLE_SEL, before],
+                    timeout=20000,
+                )
+            except Exception:
+                # page never changed; the row-count check below will catch it
+                DEBUG_DIR.mkdir(exist_ok=True)
+                page.screenshot(path=str(DEBUG_DIR / "pagination_failed.png"), full_page=True)
+                break
             page.wait_for_load_state("networkidle")
-            page.wait_for_timeout(800)
-            if page.inner_text(f"{TABLE_SEL} tr:nth-of-type(2) td") == first_before:
-                break  # page didn't change, avoid an infinite loop
 
         data = {}
         for r in rows:
