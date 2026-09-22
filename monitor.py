@@ -20,6 +20,8 @@ NEXT_SEL = "a.t20pagination:has-text('Next')"
 SNAP_DIR = Path("snapshots")
 DEBUG_DIR = Path("debug")
 
+MONITOR_NAME = "Arrear Bill Monitor"
+
 
 # ---------------------------------------------------------------- helpers
 def norm(s):
@@ -317,7 +319,7 @@ def build_html_section(name, old, new):
 
 def wrap_html(sections_html, subtitle):
     return (
-        f'<div style="{STYLE["wrap"]}"><h1 style="{STYLE["h1"]}">Portal monitor</h1>'
+        f'<div style="{STYLE["wrap"]}"><h1 style="{STYLE["h1"]}">{escape(MONITOR_NAME)}</h1>'
         f'<div style="padding:8px 18px;color:#555;">{escape(subtitle)}</div>'
         f"{sections_html}</div>"
     )
@@ -382,10 +384,10 @@ def main():
 
     if text_parts:
         if any_change:
-            subject = f"Portal monitor: {tot_new} new, {tot_chg} changed, {tot_rem} removed"
+            subject = f"{MONITOR_NAME}: {tot_new} new, {tot_chg} changed, {tot_rem} removed"
             subtitle = "Changes detected since the last check."
         else:
-            subject = "Portal monitor: baseline saved"
+            subject = f"{MONITOR_NAME}: baseline saved"
             subtitle = "Baseline snapshots created. Future runs will report changes."
         send_mail(subject, "\n\n".join(text_parts), wrap_html("".join(html_parts), subtitle))
 
