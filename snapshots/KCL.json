@@ -1,7 +1,7 @@
 {
  "KANK-KMS:201718-APSCS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "111111",
+  "ADVICE_NO": "111111",
   "BILL": "KANK-KMS:201718-APSCS",
   "DOC_DATE": "24-SEP-2026",
   "DOC_NUM": "24092026-32",
@@ -17,7 +17,7 @@
   "LEVEL2_STATUS": "",
   "LEVEL3_APPR_DATE": "",
   "LEVEL3_STATUS": "",
-  "PAY_AMT": ""
+  "PAY_AMT": "11111"
  },
  "KANK-KMS:201718-BRFCS": {
   "ADVICE_DATE": "",
