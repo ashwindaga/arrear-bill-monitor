@@ -309,14 +309,14 @@
   "L1_HOLD_REASON": "Wrongly mentioned of month name in Anex-II",
   "L2_APPROVER": "Sankar Mazumdar",
   "L2_HOLD_REASON": "",
-  "L3_APPROVER": "",
+  "L3_APPROVER": "Nayan Bhattacherjee",
   "L3_HOLD_REASON": "",
   "LEVEL1_APPR_DATE": "",
   "LEVEL1_STATUS": "Approve",
   "LEVEL2_APPR_DATE": "05-OCT-2026",
   "LEVEL2_STATUS": "Approve",
-  "LEVEL3_APPR_DATE": "",
-  "LEVEL3_STATUS": "",
+  "LEVEL3_APPR_DATE": "06-OCT-2026",
+  "LEVEL3_STATUS": "Approve",
   "PAY_AMT": ""
  },
  "TIL-KMS:201819-OROSC": {
