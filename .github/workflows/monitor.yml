@@ -15,18 +15,35 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      # The portal is usually down overnight, so scheduled runs between
+      # 00:00 and 05:30 IST are skipped. Manual runs always go ahead.
+      - name: Check overnight window
+        id: window
+        run: |
+          now=$(TZ=Asia/Kolkata date +%H%M)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$now" -lt 0530 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping: $now IST is inside the overnight window (00:00-05:30)."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.window.outputs.skip != 'true'
 
       - uses: actions/setup-python@v5
+        if: steps.window.outputs.skip != 'true'
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: steps.window.outputs.skip != 'true'
         run: |
           pip install playwright
           playwright install --with-deps chromium
 
       - name: Run monitor
+        if: steps.window.outputs.skip != 'true'
         env:
           ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -35,7 +52,7 @@ jobs:
         run: python monitor.py
 
       - name: Upload debug files
-        if: always()
+        if: always() && steps.window.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: debug
@@ -43,7 +60,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Save snapshots
-        if: always()
+        if: always() && steps.window.outputs.skip != 'true'
         run: |
           git config user.name "monitor-bot"
           git config user.email "bot@users.noreply.github.com"
