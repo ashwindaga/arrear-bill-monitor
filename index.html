@@ -129,7 +129,8 @@
 </div>
 
 <footer>
-  Data is checked against the Jute Smart portal every 30 minutes. <b>Refresh</b> loads the latest check.<br>
+  Bills are checked against the Jute Smart portal automatically a few times a day, at irregular times.<br>
+  The time of the last check is shown at the top. <b>Refresh</b> reloads this page; it does not re-check the portal.<br>
   <span style="color:var(--green)">▍</span> new bill &nbsp; <span style="color:var(--amber)">▍</span> changed in the latest update (changed values highlighted)
 </footer>
 
@@ -262,9 +263,9 @@ function renderMeta() {
     return;
   }
   const mins = (Date.now() - new Date(status.last_checked)) / 60000;
-  const stale = mins > 90;
+  const stale = mins > 8 * 60;
   $("meta").innerHTML = `Portal last checked <b>${fmtTime(status.last_checked)}</b> (${ago(status.last_checked)})` +
-    (stale ? ' <span class="stale">· checks may be paused</span>' : "");
+    (stale ? ' <span class="stale">· no check for over 8 hours</span>' : "");
 }
 
 // --- change detection against the previous snapshot ---
