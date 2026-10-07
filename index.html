@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arrear Bill Monitor</title>
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --head: #1f3a5f; --border: #e1e6ed;
+    --text: #1f2937; --muted: #6b7280; --row-alt: #fafbfc; --accent: #2563eb;
+    --green: #1e7e34; --green-bg: #e6f4ea;
+    --amber: #a15c00; --amber-bg: #fff4e0;
+    --red: #c62828; --red-bg: #fdecec;
+    --blue: #1d4ed8; --blue-bg: #e8effd;
+    --grey-bg: #eef0f3;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+         background: var(--bg); color: var(--text); font-size: 14px; }
+  header { background: var(--head); color: #fff; padding: 16px 24px; display: flex;
+           align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  header h1 { margin: 0; font-size: 19px; font-weight: 600; }
+  header .meta { font-size: 12.5px; color: #cdd9ea; margin-top: 3px; }
+  header .meta b { color: #fff; font-weight: 600; }
+  .stale { color: #ffd38a !important; }
+  #refreshBtn { background: #fff; color: var(--head); border: none; padding: 9px 18px; border-radius: 6px;
+                font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  #refreshBtn:hover { background: #eef2f7; }
+  #refreshBtn:disabled { opacity: .6; cursor: wait; }
+  #refreshBtn svg { width: 15px; height: 15px; }
+  .spin { animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 0 20px; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+          cursor: pointer; transition: border-color .15s; }
+  .card:hover { border-color: #b9c3d0; }
+  .card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card .num { font-size: 22px; font-weight: 700; }
+  .card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card.paid .num { color: var(--green); } .card.hold .num { color: var(--red); }
+  .card.c-chg .num { color: var(--amber); }
+
+  .controls { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .controls input { flex: 1; min-width: 220px; padding: 9px 12px; border: 1px solid var(--border);
+                    border-radius: 6px; font-size: 14px; }
+  .controls select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13.5px; background: #fff; }
+  .clear { font-size: 12.5px; color: var(--accent); cursor: pointer; display: none; }
+
+  main { margin-top: 16px; margin-bottom: 50px; }
+  .mill { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .mill-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+               padding: 12px 16px; background: #f7f9fc; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .mill-head h2 { margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mill-head .sub { font-size: 12px; color: var(--muted); }
+  .mill-head .caret { font-size: 11px; color: var(--muted); transition: transform .15s; }
+  .mill.collapsed .caret { transform: rotate(-90deg); }
+  .mill.collapsed .body { display: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .b-ok { background: var(--grey-bg); color: var(--text); }
+  .b-err { background: var(--red-bg); color: var(--red); }
+  .b-chg { background: var(--amber-bg); color: var(--amber); }
+  .err-note { padding: 8px 16px; background: var(--red-bg); color: var(--red); font-size: 12.5px; border-bottom: 1px solid var(--border); }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; white-space: nowrap; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; }
+  th { background: #fbfcfd; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted);
+       cursor: pointer; user-select: none; }
+  th:hover { color: var(--text); }
+  th.num, td.num { text-align: right; }
+  th .arrow { font-size: 9px; margin-left: 3px; }
+  tbody tr:nth-child(odd) { background: var(--row-alt); }
+  td.sticky, th.sticky { position: sticky; left: 0; background: inherit; z-index: 1; }
+  th.sticky { background: #fbfcfd; }
+  tbody tr td.sticky { background: #fff; }
+  tbody tr:nth-child(odd) td.sticky { background: var(--row-alt); }
+  tr.row-new td.sticky { box-shadow: inset 3px 0 0 var(--green); }
+  tr.row-chg td.sticky { box-shadow: inset 3px 0 0 var(--amber); }
+  .bill { font-weight: 600; }
+
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  .p-approve { background: var(--green-bg); color: var(--green); }
+  .p-hold { background: var(--red-bg); color: var(--red); }
+  .st-paid { background: var(--green-bg); color: var(--green); }
+  .st-hold { background: var(--red-bg); color: var(--red); }
+  .st-ready { background: var(--blue-bg); color: var(--blue); }
+  .st-wait { background: var(--grey-bg); color: #374151; }
+  .dash { color: #b0b6bf; }
+  .hold-reason { color: var(--red); font-size: 12px; }
+  .chg { background: var(--amber-bg); color: var(--amber); border-radius: 4px; padding: 1px 5px; }
+  .tag-new { background: var(--green-bg); color: var(--green); font-size: 10px; font-weight: 700;
+             padding: 1px 5px; border-radius: 4px; margin-left: 6px; }
+  .empty { padding: 22px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 20px 28px; line-height: 1.6; }
+
+  @media (max-width: 640px) {
+    header { padding: 14px 16px; } header h1 { font-size: 16px; }
+    .wrap { padding: 0 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Arrear Bill Monitor</h1>
+    <div class="meta" id="meta">Loading…</div>
+  </div>
+  <button id="refreshBtn" type="button">
+    <svg id="refreshIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+    </svg>
+    <span id="refreshLabel">Refresh</span>
+  </button>
+</header>
+
+<div class="wrap">
+  <div class="summary" id="summary"></div>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search bill no., doc no., approver, hold reason…" />
+    <select id="millSelect"><option value="">All mills</option></select>
+    <span class="clear" id="clearBtn">Clear filters</span>
+  </div>
+  <main id="main"><div class="empty">Loading mill data…</div></main>
+</div>
+
+<footer>
+  Data is checked against the Jute Smart portal every 30 minutes. <b>Refresh</b> loads the latest check.<br>
+  <span style="color:var(--green)">▍</span> new bill &nbsp; <span style="color:var(--amber)">▍</span> changed in the latest update (changed values highlighted)
+</footer>
+
+<script>
+// Mills are read from snapshots/status.json (written by monitor.py), so adding
+// an account to ACCOUNTS_JSON shows up here automatically. This list is only a
+// fallback for before status.json exists.
+const FALLBACK_MILLS = ["KCL", "Kaliaganj", "Naffarchandra", "Tepcon"];
+
+const COLUMNS = [
+  { key: "BILL", label: "Bill", sticky: true },
+  { key: "_STAGE", label: "Stage" },
+  { key: "DOC_NUM", label: "Doc No." },
+  { key: "DOC_DATE", label: "Doc. Date", date: true },
+  { key: "L1_APPROVER", label: "L1 Approver" },
+  { key: "LEVEL1_STATUS", label: "L1 Status", status: true },
+  { key: "LEVEL1_APPR_DATE", label: "L1 Appr Date", date: true },
+  { key: "L1_HOLD_REASON", label: "L1 Hold Reason", hold: true },
+  { key: "L2_APPROVER", label: "L2 Approver" },
+  { key: "LEVEL2_STATUS", label: "L2 Status", status: true },
+  { key: "LEVEL2_APPR_DATE", label: "L2 Appr Date", date: true },
+  { key: "L2_HOLD_REASON", label: "L2 Hold Reason", hold: true },
+  { key: "L3_APPROVER", label: "L3 Approver" },
+  { key: "LEVEL3_STATUS", label: "L3 Status", status: true },
+  { key: "LEVEL3_APPR_DATE", label: "L3 Appr Date", date: true },
+  { key: "L3_HOLD_REASON", label: "L3 Hold Reason", hold: true },
+  { key: "ADVICE_NO", label: "Advice No" },
+  { key: "PAY_AMT", label: "Pay Amt (₹)", num: true },
+  { key: "ADVICE_DATE", label: "Advice Date", date: true },
+];
+const DATA_KEYS = COLUMNS.filter(c => !c.key.startsWith("_")).map(c => c.key);
+
+// Stage order doubles as the default sort order (most actionable first)
+const STAGES = {
+  hold:   { rank: 0, cls: "st-hold",  card: "On hold" },
+  ready:  { rank: 1, cls: "st-ready", card: "Approved, awaiting payment" },
+  l3:     { rank: 2, cls: "st-wait",  card: "Awaiting L3" },
+  l2:     { rank: 3, cls: "st-wait",  card: "Awaiting L2" },
+  l1:     { rank: 4, cls: "st-wait",  card: "Awaiting L1" },
+  paid:   { rank: 5, cls: "st-paid",  card: "Paid" },
+};
+
+let status = null;   // contents of snapshots/status.json
+let mills = [];      // [{ name, rows, prev, error }]
+let sortState = {};  // mill -> { key, dir }
+let collapsed = {};
+let filter = "";     // "", a stage id, or "changed"
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const isHold = v => /hold/i.test(v || "");
+const isApprove = v => /approve/i.test(v || "");
+
+function stageOf(r) {
+  if ((r.ADVICE_NO || "").trim()) return { id: "paid", text: "Paid" };
+  for (const n of [3, 2, 1]) if (isHold(r[`LEVEL${n}_STATUS`])) return { id: "hold", text: `On hold at L${n}` };
+  if (isApprove(r.LEVEL3_STATUS)) return { id: "ready", text: "Approved – awaiting payment" };
+  if (isApprove(r.LEVEL2_STATUS)) return { id: "l3", text: "Awaiting L3" };
+  if (isApprove(r.LEVEL1_STATUS)) return { id: "l2", text: "Awaiting L2" };
+  return { id: "l1", text: "Awaiting L1" };
+}
+
+const MONTHS = { JAN:0, FEB:1, MAR:2, APR:3, MAY:4, JUN:5, JUL:6, AUG:7, SEP:8, OCT:9, NOV:10, DEC:11 };
+function dateVal(s) {  // "28-JUL-2026" -> sortable number
+  const m = /^(\d{1,2})-([A-Z]{3})-(\d{4})$/i.exec((s || "").trim());
+  return m ? new Date(+m[3], MONTHS[m[2].toUpperCase()], +m[1]).getTime() : null;
+}
+const inr = n => Number(n).toLocaleString("en-IN");
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short",
+                                                hour: "numeric", minute: "2-digit" });
+}
+function ago(iso) {
+  if (!iso) return "";
+  const mins = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const h = Math.round(mins / 60);
+  if (h < 24) return `${h} hr${h > 1 ? "s" : ""} ago`;
+  const d = Math.round(h / 24);
+  return `${d} day${d > 1 ? "s" : ""} ago`;
+}
+
+function cleanRows(obj) {  // keep only real bill rows
+  const out = {};
+  for (const [k, v] of Object.entries(obj || {}))
+    if (k && !k.includes(" ") && v && typeof v === "object") out[k] = v;
+  return out;
+}
+
+async function getJson(path) {
+  const res = await fetch(`${path}?t=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(res.status === 404 ? "no data yet" : `HTTP ${res.status}`);
+  return res.json();
+}
+
+async function load() {
+  const btn = $("refreshBtn");
+  btn.disabled = true; $("refreshIcon").classList.add("spin"); $("refreshLabel").textContent = "Refreshing…";
+  try { status = await getJson("snapshots/status.json"); } catch { status = null; }
+  const names = status && status.mills && Object.keys(status.mills).length
+    ? Object.keys(status.mills).sort() : FALLBACK_MILLS;
+
+  mills = await Promise.all(names.map(async name => {
+    try {
+      const rows = cleanRows(await getJson(`snapshots/${encodeURIComponent(name)}.json`));
+      let prev = null;
+      try { prev = cleanRows(await getJson(`snapshots/${encodeURIComponent(name)}.prev.json`)); } catch {}
+      return { name, rows, prev, error: null };
+    } catch (e) {
+      return { name, rows: {}, prev: null, error: e.message };
+    }
+  }));
+
+  const sel = $("millSelect"), cur = sel.value;
+  sel.innerHTML = '<option value="">All mills</option>' +
+    mills.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join("");
+  sel.value = mills.some(m => m.name === cur) ? cur : "";
+
+  renderMeta();
+  render();
+  btn.disabled = false; $("refreshIcon").classList.remove("spin"); $("refreshLabel").textContent = "Refresh";
+}
+
+function renderMeta() {
+  if (!status || !status.last_checked) {
+    $("meta").textContent = "Loaded " + fmtTime(new Date().toISOString());
+    return;
+  }
+  const mins = (Date.now() - new Date(status.last_checked)) / 60000;
+  const stale = mins > 90;
+  $("meta").innerHTML = `Portal last checked <b>${fmtTime(status.last_checked)}</b> (${ago(status.last_checked)})` +
+    (stale ? ' <span class="stale">· checks may be paused</span>' : "");
+}
+
+// --- change detection against the previous snapshot ---
+const isNew = (m, b) => !!m.prev && !(b in m.prev);
+const fieldChanged = (m, b, k) => !!m.prev && b in m.prev && (m.prev[b][k] || "") !== (m.rows[b][k] || "");
+const rowChanged = (m, b) => DATA_KEYS.some(k => fieldChanged(m, b, k));
+
+function matches(m, b, q) {
+  const r = m.rows[b];
+  if (filter === "changed" && !(isNew(m, b) || rowChanged(m, b))) return false;
+  if (filter && filter !== "changed" && stageOf(r).id !== filter) return false;
+  if (q) {
+    const hay = (Object.values(r).join(" ") + " " + stageOf(r).text).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+function cmp(m, a, b, key) {
+  if (key === "_STAGE") return STAGES[stageOf(m.rows[a]).id].rank - STAGES[stageOf(m.rows[b]).id].rank;
+  const col = COLUMNS.find(c => c.key === key) || {};
+  const va = m.rows[a][key] || "", vb = m.rows[b][key] || "";
+  if (!va && vb) return 1;             // blanks always last
+  if (va && !vb) return -1;
+  if (col.date) return (dateVal(va) ?? 0) - (dateVal(vb) ?? 0);
+  if (col.num) return Number(va) - Number(vb);
+  return va.localeCompare(vb, undefined, { numeric: true });
+}
+
+function sortedBills(m, bills) {
+  const st = sortState[m.name];
+  return bills.sort((a, b) => {
+    if (st) { const c = cmp(m, a, b, st.key); return st.dir === "asc" ? c : -c; }
+    // default: stage (most actionable first), then oldest document first
+    return cmp(m, a, b, "_STAGE") || cmp(m, a, b, "DOC_DATE");
+  });
+}
+
+function cell(m, b, col) {
+  const r = m.rows[b];
+  if (col.key === "_STAGE") {
+    const s = stageOf(r);
+    return `<td><span class="pill ${STAGES[s.id].cls}">${esc(s.text)}</span></td>`;
+  }
+  const v = (r[col.key] || "").trim();
+  let html;
+  if (!v) html = '<span class="dash">—</span>';
+  else if (col.status) html = `<span class="pill ${isHold(v) ? "p-hold" : isApprove(v) ? "p-approve" : ""}">${esc(v)}</span>`;
+  else if (col.hold) html = `<span class="hold-reason">${esc(v)}</span>`;
+  else if (col.num && !isNaN(v)) html = inr(v);
+  else html = esc(v);
+  if (col.key === "BILL") html = `<span class="bill">${html}</span>` + (isNew(m, b) ? '<span class="tag-new">NEW</span>' : "");
+  else if (fieldChanged(m, b, col.key)) {
+    const old = m.prev[b][col.key] || "blank";
+    html = `<span class="chg" title="Was: ${esc(old)}">${html}</span>`;
+  }
+  const cls = [col.sticky ? "sticky" : "", col.num ? "num" : ""].filter(Boolean).join(" ");
+  return `<td${cls ? ` class="${cls}"` : ""}>${html}</td>`;
+}
+
+function renderSummary(visibleMills) {
+  const counts = { total: 0, changed: 0 };
+  for (const id in STAGES) counts[id] = 0;
+  for (const m of visibleMills) for (const b in m.rows) {
+    counts.total++;
+    counts[stageOf(m.rows[b]).id]++;
+    if (isNew(m, b) || rowChanged(m, b)) counts.changed++;
+  }
+  const cards = [
+    { id: "", num: counts.total, lbl: "All bills" },
+    { id: "hold", num: counts.hold, lbl: STAGES.hold.card, cls: "hold" },
+    { id: "l1", num: counts.l1, lbl: STAGES.l1.card },
+    { id: "l2", num: counts.l2, lbl: STAGES.l2.card },
+    { id: "l3", num: counts.l3, lbl: STAGES.l3.card },
+    { id: "ready", num: counts.ready, lbl: STAGES.ready.card },
+    { id: "paid", num: counts.paid, lbl: STAGES.paid.card, cls: "paid" },
+    { id: "changed", num: counts.changed, lbl: "Changed in latest update", cls: "c-chg" },
+  ];
+  $("summary").innerHTML = cards.map(c =>
+    `<div class="card ${c.cls || ""} ${filter === c.id ? "active" : ""}" data-filter="${c.id}">
+       <div class="num">${c.num}</div><div class="lbl">${c.lbl}</div></div>`).join("");
+}
+
+function render() {
+  const q = $("search").value.trim().toLowerCase();
+  const only = $("millSelect").value;
+  const visible = mills.filter(m => !only || m.name === only);
+  renderSummary(visible);
+  $("clearBtn").style.display = (q || only || filter) ? "inline" : "none";
+
+  $("main").innerHTML = visible.map(m => {
+    const ms = (status && status.mills && status.mills[m.name]) || {};
+    const total = Object.keys(m.rows).length;
+    const nChg = Object.keys(m.rows).filter(b => isNew(m, b) || rowChanged(m, b)).length;
+    const bills = sortedBills(m, Object.keys(m.rows).filter(b => matches(m, b, q)));
+
+    let badges = `<span class="badge b-ok">${total} bill${total === 1 ? "" : "s"}</span>`;
+    if (nChg) badges += ` <span class="badge b-chg">${nChg} changed</span>`;
+    if (m.error || ms.ok === false) badges += ` <span class="badge b-err">last check failed</span>`;
+    const sub = ms.last_changed ? `Last change ${fmtTime(ms.last_changed)} (${ago(ms.last_changed)})`
+              : ms.last_success ? "No changes since tracking began" : "";
+
+    const errNote = m.error ? `<div class="err-note">Couldn't load this mill's data: ${esc(m.error)}</div>`
+      : ms.ok === false ? `<div class="err-note">The latest portal check for this mill failed, so the data below
+          ${ms.last_success ? "is from " + fmtTime(ms.last_success) : "may be out of date"}.
+          ${ms.error ? "Reason: " + esc(ms.error.slice(0, 160)) : ""}</div>` : "";
+
+    let body;
+    if (!total) body = `<div class="empty">${m.error ? "" : "No arrear bills for this mill right now."}</div>`;
+    else if (!bills.length) body = `<div class="empty">No bills match the current filter.</div>`;
+    else {
+      const st = sortState[m.name];
+      const head = COLUMNS.map(c => {
+        const arrow = st && st.key === c.key ? (st.dir === "asc" ? "▲" : "▼") : "";
+        const cls = [c.sticky ? "sticky" : "", c.num ? "num" : ""].filter(Boolean).join(" ");
+        return `<th data-mill="${esc(m.name)}" data-key="${c.key}"${cls ? ` class="${cls}"` : ""}>${c.label}<span class="arrow">${arrow}</span></th>`;
+      }).join("");
+      const rows = bills.map(b => {
+        const rc = isNew(m, b) ? "row-new" : rowChanged(m, b) ? "row-chg" : "";
+        return `<tr class="${rc}">${COLUMNS.map(c => cell(m, b, c)).join("")}</tr>`;
+      }).join("");
+      body = `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    return `<section class="mill ${collapsed[m.name] ? "collapsed" : ""}">
+      <div class="mill-head" data-collapse="${esc(m.name)}">
+        <h2>${esc(m.name)} ${badges}</h2>
+        <span><span class="sub">${sub}</span> <span class="caret">▼</span></span>
+      </div>
+      <div class="body">${errNote}${body}</div>
+    </section>`;
+  }).join("") || '<div class="empty">No mills to show.</div>';
+}
+
+// --- events ---
+$("refreshBtn").addEventListener("click", load);
+$("search").addEventListener("input", render);
+$("millSelect").addEventListener("change", render);
+$("clearBtn").addEventListener("click", () => { $("search").value = ""; $("millSelect").value = ""; filter = ""; render(); });
+$("summary").addEventListener("click", e => {
+  const c = e.target.closest(".card"); if (!c) return;
+  filter = filter === c.dataset.filter ? "" : c.dataset.filter; render();
+});
+$("main").addEventListener("click", e => {
+  const th = e.target.closest("th[data-key]");
+  if (th) {
+    const { mill, key } = th.dataset, st = sortState[mill];
+    sortState[mill] = st && st.key === key ? { key, dir: st.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
+    render(); return;
+  }
+  const h = e.target.closest("[data-collapse]");
+  if (h) { collapsed[h.dataset.collapse] = !collapsed[h.dataset.collapse]; render(); }
+});
+
+load();
+setInterval(load, 10 * 60 * 1000);  // auto-reload every 10 minutes for screens left open
+</script>
+</body>
+</html>

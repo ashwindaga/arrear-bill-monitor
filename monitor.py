@@ -4,6 +4,7 @@ import re
 import smtplib
 import sys
 import time
+from datetime import datetime, timezone
 from email.message import EmailMessage
 from html import escape
 from pathlib import Path
@@ -19,6 +20,7 @@ TABLE_SEL = "table.t20Report.t20Standard"
 NEXT_SEL = "a.t20pagination:has-text('Next')"
 SNAP_DIR = Path("snapshots")
 DEBUG_DIR = Path("debug")
+STATUS_FILE = SNAP_DIR / "status.json"  # read by the dashboard (index.html)
 
 MONITOR_NAME = "Arrear Bill Monitor"
 
@@ -339,12 +341,27 @@ def send_mail(subject, text_body, html_body):
 
 
 # ---------------------------------------------------------------- main
+def load_status():
+    try:
+        return json.loads(STATUS_FILE.read_text())
+    except Exception:
+        return {"last_checked": None, "mills": {}}
+
+
 def main():
     accounts = json.loads(os.environ["ACCOUNTS_JSON"])
     SNAP_DIR.mkdir(exist_ok=True)
     text_parts, html_parts, failures = [], [], []
     tot_new = tot_chg = tot_rem = 0
     any_change = False
+
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    status = load_status()
+    status["last_checked"] = now
+    mills_status = status.setdefault("mills", {})
+    # drop mills that are no longer in ACCOUNTS_JSON
+    for gone in set(mills_status) - {a["name"] for a in accounts}:
+        del mills_status[gone]
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -353,14 +370,23 @@ def main():
                 time.sleep(8)  # portal enforces a gap between logins
             name = acc["name"]
             snap = SNAP_DIR / f"{name}.json"
+            ms = mills_status.setdefault(name, {})
 
             try:
                 new = scrape(browser, acc["user"], acc["pass"])
             except Exception as e:
                 failures.append(f"{name}: {e}")
+                ms["ok"] = False
+                ms["error"] = str(e)[:300]
                 continue
 
+            ms["ok"] = True
+            ms["error"] = None
+            ms["bills"] = len(new)
+            ms["last_success"] = now
+
             if not snap.exists():
+                ms["last_changed"] = None
                 snap.write_text(json.dumps(new, indent=1, sort_keys=True))
                 text_parts.append(f"=== {name}: baseline saved ({len(new)} bills) ===")
                 html_parts.append(
@@ -379,8 +405,13 @@ def main():
                 tot_new += a
                 tot_chg += c
                 tot_rem += r
+                # keep the previous state so the dashboard can highlight what changed
+                (SNAP_DIR / f"{name}.prev.json").write_text(json.dumps(old, indent=1, sort_keys=True))
                 snap.write_text(json.dumps(new, indent=1, sort_keys=True))
+                ms["last_changed"] = now
         browser.close()
+
+    STATUS_FILE.write_text(json.dumps(status, indent=1, sort_keys=True))
 
     if text_parts:
         if any_change:
