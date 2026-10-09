@@ -300,8 +300,8 @@
   "PAY_AMT": ""
  },
  "TIL-KMS:201819-MPSCS": {
-  "ADVICE_DATE": "09-OCT-2026",
-  "ADVICE_NO": "262773601510",
+  "ADVICE_DATE": "",
+  "ADVICE_NO": "",
   "BILL": "TIL-KMS:201819-MPSCS",
   "DOC_DATE": "01-SEP-2026",
   "DOC_NUM": "01092026-14",
@@ -317,7 +317,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "06-OCT-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": "175933"
+  "PAY_AMT": ""
  },
  "TIL-KMS:201819-OROSC": {
   "ADVICE_DATE": "",
