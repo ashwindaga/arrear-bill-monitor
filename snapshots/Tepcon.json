@@ -560,8 +560,8 @@
   "PAY_AMT": ""
  },
  "TIL-RMS:201718-INFCI": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "21-OCT-2026",
+  "ADVICE_NO": "262773601785",
   "BILL": "TIL-RMS:201718-INFCI",
   "DOC_DATE": "29-SEP-2026",
   "DOC_NUM": "29092026-77",
@@ -577,7 +577,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "15-OCT-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "215831"
  },
  "TIL-RMS:201718-MPSCS": {
   "ADVICE_DATE": "",
