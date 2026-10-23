@@ -400,8 +400,8 @@
   "PAY_AMT": "50872"
  },
  "GJM-KMS:201819-APSCS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "23-OCT-2026",
+  "ADVICE_NO": "262773601869",
   "BILL": "GJM-KMS:201819-APSCS",
   "DOC_DATE": "23-SEP-2026",
   "DOC_NUM": "23092026-49",
@@ -417,7 +417,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "22-OCT-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "495718"
  },
  "GJM-KMS:201819-INFCI": {
   "ADVICE_DATE": "",
@@ -447,14 +447,14 @@
   "DOC_NUM": "23092026-98",
   "L1_APPROVER": "Swarup Sarkar",
   "L1_HOLD_REASON": "",
-  "L2_APPROVER": "",
+  "L2_APPROVER": "Sankar Mazumdar",
   "L2_HOLD_REASON": "",
   "L3_APPROVER": "",
   "L3_HOLD_REASON": "",
   "LEVEL1_APPR_DATE": "",
-  "LEVEL1_STATUS": "",
-  "LEVEL2_APPR_DATE": "",
-  "LEVEL2_STATUS": "",
+  "LEVEL1_STATUS": "Approve",
+  "LEVEL2_APPR_DATE": "23-OCT-2026",
+  "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "",
   "LEVEL3_STATUS": "",
   "PAY_AMT": ""
@@ -520,8 +520,8 @@
   "PAY_AMT": ""
  },
  "GJM-KMS:201819-UPFCS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "23-OCT-2026",
+  "ADVICE_NO": "262773601887",
   "BILL": "GJM-KMS:201819-UPFCS",
   "DOC_DATE": "08-OCT-2026",
   "DOC_NUM": "08102026-37",
@@ -537,7 +537,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "22-OCT-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "108661"
  },
  "GJM-KMS:201920-INFCI": {
   "ADVICE_DATE": "",
@@ -560,8 +560,8 @@
   "PAY_AMT": ""
  },
  "GJM-KMS:201920-PBPWC": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "23-OCT-2026",
+  "ADVICE_NO": "262773601888",
   "BILL": "GJM-KMS:201920-PBPWC",
   "DOC_DATE": "08-OCT-2026",
   "DOC_NUM": "08102026-41",
@@ -577,7 +577,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "22-OCT-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "411691"
  },
  "GJM-KMS:201920-UPFCS": {
   "ADVICE_DATE": "",

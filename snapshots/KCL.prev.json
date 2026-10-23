@@ -519,26 +519,6 @@
   "LEVEL3_STATUS": "Approve",
   "PAY_AMT": ""
  },
- "KANK-RMS:201718-MPSCS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
-  "BILL": "KANK-RMS:201718-MPSCS",
-  "DOC_DATE": "29-SEP-2026",
-  "DOC_NUM": "29092026-80",
-  "L1_APPROVER": "Sumant Kumar Sangam",
-  "L1_HOLD_REASON": "Rate Month Mismatch against Inote",
-  "L2_APPROVER": "",
-  "L2_HOLD_REASON": "",
-  "L3_APPROVER": "",
-  "L3_HOLD_REASON": "",
-  "LEVEL1_APPR_DATE": "",
-  "LEVEL1_STATUS": "On Hold",
-  "LEVEL2_APPR_DATE": "",
-  "LEVEL2_STATUS": "",
-  "LEVEL3_APPR_DATE": "",
-  "LEVEL3_STATUS": "",
-  "PAY_AMT": ""
- },
  "KANK-RMS:201718-UPFCS": {
   "ADVICE_DATE": "",
   "ADVICE_NO": "",
