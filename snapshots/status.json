@@ -1,38 +1,38 @@
 {
- "last_checked": "2026-10-26T11:59:40+00:00",
+ "last_checked": "2026-10-26T18:41:40+00:00",
  "mills": {
   "GS": {
    "bills": 48,
-   "error": null,
+   "error": "Page.goto: net::ERR_CONNECTION_REFUSED at http://117.232.134.137:8080/apex/f?p=123:101\nCall log:\n  - navigating to \"http://117.232.134.137:8080/apex/f?p=123:101\", waiting until \"load\"\n",
    "last_changed": "2026-10-26T11:59:40+00:00",
    "last_success": "2026-10-26T11:59:40+00:00",
-   "ok": true
+   "ok": false
   },
   "KCL": {
    "bills": 28,
-   "error": null,
+   "error": "Page.goto: net::ERR_CONNECTION_REFUSED at http://117.232.134.137:8080/apex/f?p=123:101\nCall log:\n  - navigating to \"http://117.232.134.137:8080/apex/f?p=123:101\", waiting until \"load\"\n",
    "last_changed": "2026-10-26T11:59:40+00:00",
    "last_success": "2026-10-26T11:59:40+00:00",
-   "ok": true
+   "ok": false
   },
   "Kaliaganj": {
    "bills": 4,
-   "error": null,
+   "error": "Page.goto: net::ERR_CONNECTION_REFUSED at http://117.232.134.137:8080/apex/f?p=123:101\nCall log:\n  - navigating to \"http://117.232.134.137:8080/apex/f?p=123:101\", waiting until \"load\"\n",
    "last_success": "2026-10-26T11:59:40+00:00",
-   "ok": true
+   "ok": false
   },
   "Naffarchandra": {
    "bills": 0,
-   "error": null,
+   "error": "Page.goto: net::ERR_CONNECTION_REFUSED at http://117.232.134.137:8080/apex/f?p=123:101\nCall log:\n  - navigating to \"http://117.232.134.137:8080/apex/f?p=123:101\", waiting until \"load\"\n",
    "last_success": "2026-10-26T11:59:40+00:00",
-   "ok": true
+   "ok": false
   },
   "Tepcon": {
    "bills": 39,
-   "error": null,
+   "error": "Page.goto: net::ERR_CONNECTION_REFUSED at http://117.232.134.137:8080/apex/f?p=123:101\nCall log:\n  - navigating to \"http://117.232.134.137:8080/apex/f?p=123:101\", waiting until \"load\"\n",
    "last_changed": "2026-10-26T11:59:40+00:00",
    "last_success": "2026-10-26T11:59:40+00:00",
-   "ok": true
+   "ok": false
   }
  }
 }
