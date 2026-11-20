@@ -459,6 +459,26 @@
   "LEVEL3_STATUS": "",
   "PAY_AMT": ""
  },
+ "GJM-KMS:201819-HRHSW": {
+  "ADVICE_DATE": "",
+  "ADVICE_NO": "",
+  "BILL": "GJM-KMS:201819-HRHSW",
+  "DOC_DATE": "20-NOV-2026",
+  "DOC_NUM": "20112026-33",
+  "L1_APPROVER": "",
+  "L1_HOLD_REASON": "",
+  "L2_APPROVER": "",
+  "L2_HOLD_REASON": "",
+  "L3_APPROVER": "",
+  "L3_HOLD_REASON": "",
+  "LEVEL1_APPR_DATE": "",
+  "LEVEL1_STATUS": "",
+  "LEVEL2_APPR_DATE": "",
+  "LEVEL2_STATUS": "",
+  "LEVEL3_APPR_DATE": "",
+  "LEVEL3_STATUS": "",
+  "PAY_AMT": ""
+ },
  "GJM-KMS:201819-INFCI": {
   "ADVICE_DATE": "",
   "ADVICE_NO": "",
