@@ -1,39 +1,39 @@
 {
- "last_checked": "2026-11-25T14:44:20+00:00",
+ "last_checked": "2026-11-26T05:20:20+00:00",
  "mills": {
   "GS": {
    "bills": 61,
    "error": null,
    "last_changed": "2026-11-25T14:44:20+00:00",
-   "last_success": "2026-11-25T14:44:20+00:00",
+   "last_success": "2026-11-26T05:20:20+00:00",
    "ok": true
   },
   "KCL": {
    "bills": 59,
    "error": null,
    "last_changed": "2026-11-25T14:44:20+00:00",
-   "last_success": "2026-11-25T14:44:20+00:00",
+   "last_success": "2026-11-26T05:20:20+00:00",
    "ok": true
   },
   "Kaliaganj": {
    "bills": 10,
    "error": null,
    "last_changed": "2026-11-20T12:22:30+00:00",
-   "last_success": "2026-11-25T14:44:20+00:00",
+   "last_success": "2026-11-26T05:20:20+00:00",
    "ok": true
   },
   "Naffarchandra": {
    "bills": 20,
    "error": null,
    "last_changed": "2026-11-25T14:44:20+00:00",
-   "last_success": "2026-11-25T14:44:20+00:00",
+   "last_success": "2026-11-26T05:20:20+00:00",
    "ok": true
   },
   "Tepcon": {
    "bills": 58,
    "error": null,
    "last_changed": "2026-11-25T14:44:20+00:00",
-   "last_success": "2026-11-25T14:44:20+00:00",
+   "last_success": "2026-11-26T05:20:20+00:00",
    "ok": true
   }
  }
