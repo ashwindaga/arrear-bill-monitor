@@ -9,14 +9,14 @@
   "L1_HOLD_REASON": "",
   "L2_APPROVER": "Sankar Mazumdar",
   "L2_HOLD_REASON": "",
-  "L3_APPROVER": "",
+  "L3_APPROVER": "Nayan Bhattacherjee",
   "L3_HOLD_REASON": "",
   "LEVEL1_APPR_DATE": "",
   "LEVEL1_STATUS": "Approve",
   "LEVEL2_APPR_DATE": "17-NOV-2026",
   "LEVEL2_STATUS": "Approve",
-  "LEVEL3_APPR_DATE": "",
-  "LEVEL3_STATUS": "",
+  "LEVEL3_APPR_DATE": "27-NOV-2026",
+  "LEVEL3_STATUS": "Approve",
   "PAY_AMT": ""
  },
  "KANK-KMS:201718-BRFCS": {
@@ -440,8 +440,8 @@
   "PAY_AMT": ""
  },
  "KANK-KMS:201819-WBECS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "27-NOV-2026",
+  "ADVICE_NO": "262773602495",
   "BILL": "KANK-KMS:201819-WBECS",
   "DOC_DATE": "15-OCT-2026",
   "DOC_NUM": "15102026-13",
@@ -457,7 +457,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "17-NOV-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "665569"
  },
  "KANK-KMS:201920-APSCS": {
   "ADVICE_DATE": "",
@@ -466,6 +466,26 @@
   "DOC_DATE": "19-NOV-2026",
   "DOC_NUM": "19112026-51",
   "L1_APPROVER": "Sumant Kumar Sangam",
+  "L1_HOLD_REASON": "",
+  "L2_APPROVER": "",
+  "L2_HOLD_REASON": "",
+  "L3_APPROVER": "",
+  "L3_HOLD_REASON": "",
+  "LEVEL1_APPR_DATE": "",
+  "LEVEL1_STATUS": "",
+  "LEVEL2_APPR_DATE": "",
+  "LEVEL2_STATUS": "",
+  "LEVEL3_APPR_DATE": "",
+  "LEVEL3_STATUS": "",
+  "PAY_AMT": ""
+ },
+ "KANK-KMS:201920-BRFCS": {
+  "ADVICE_DATE": "",
+  "ADVICE_NO": "",
+  "BILL": "KANK-KMS:201920-BRFCS",
+  "DOC_DATE": "27-NOV-2026",
+  "DOC_NUM": "27112026-35",
+  "L1_APPROVER": "",
   "L1_HOLD_REASON": "",
   "L2_APPROVER": "",
   "L2_HOLD_REASON": "",
@@ -820,8 +840,8 @@
   "PAY_AMT": ""
  },
  "KANK-RMS:201718-UPFCS": {
-  "ADVICE_DATE": "",
-  "ADVICE_NO": "",
+  "ADVICE_DATE": "27-NOV-2026",
+  "ADVICE_NO": "262773602535",
   "BILL": "KANK-RMS:201718-UPFCS",
   "DOC_DATE": "29-SEP-2026",
   "DOC_NUM": "29092026-82",
@@ -837,7 +857,7 @@
   "LEVEL2_STATUS": "Approve",
   "LEVEL3_APPR_DATE": "17-NOV-2026",
   "LEVEL3_STATUS": "Approve",
-  "PAY_AMT": ""
+  "PAY_AMT": "78534"
  },
  "KANK-RMS:201819-HRDFS": {
   "ADVICE_DATE": "",
@@ -932,7 +952,7 @@
   "L3_APPROVER": "",
   "L3_HOLD_REASON": "",
   "LEVEL1_APPR_DATE": "",
-  "LEVEL1_STATUS": "",
+  "LEVEL1_STATUS": "Approve",
   "LEVEL2_APPR_DATE": "",
   "LEVEL2_STATUS": "",
   "LEVEL3_APPR_DATE": "",
